@@ -1,11 +1,19 @@
 #!/usr/bin/env python3
 
-import ST7735
-from PIL import Image, ImageDraw, ImageFont
-import logging
-import time
-from bme280 import BME280
 import os
+import json
+from bme280 import BME280
+import time
+import logging
+from PIL import Image, ImageDraw, ImageFont
+import ST7735
+import requests
+import socket
+NODEJSPORT = 4000
+
+t = time.localtime()
+current_time = time.strftime("%H:%M:%S", t)
+
 try:
     from smbus2 import SMBus
 except ImportError:
@@ -53,6 +61,17 @@ WIDTH = disp.width
 HEIGHT = disp.height
 
 
+# GET Request to check if server is live:
+hostname = socket.gethostname()
+ip_address = socket.gethostbyname(hostname)
+print("Hostname: " + hostname)
+print("IP Address: " + ip_address)
+URL = "http://" + "localhost" + ":" + str(4000) + "/envirodata"
+print("NodeJS URL: " + URL)
+r = requests.get(url=URL)
+print(r)
+
+
 # Keep running.
 try:
     while True:
@@ -63,7 +82,6 @@ try:
         raw_temp = bme280.get_temperature()
         comp_temp = raw_temp - ((avg_cpu_temp - raw_temp) / factor)
         # logging.info("Compensated temperature: {:05.2f} *C".format(comp_temp))
-        time.sleep(1.0)
 
         cputempdisp = get_cpu_temperature()
         temperature = bme280.get_temperature()
@@ -78,10 +96,28 @@ try:
         text_colour = (255, 255, 255)
         back_colour = (0, 0, 0)
 
-        message = "temp = " + str(temperature) + "\n" + \
-            "press = " + str(pressure) + "\n" + "hum = " + \
-            str(humidity) + "\n" + "CPU = " + str(cputempdisp) + \
-            "\n" + "Comp Temp: {:05.2f} *C".format(comp_temp)
+        # message = "temp = " + str(temperature) + "\n" + \
+        #     "press = " + str(pressure) + "\n" + "hum = " + \
+        #     str(humidity) + "\n" + "CPU = " + str(cputempdisp) + \
+        #     "\n" + "Comp Temp: {:05.2f} *C".format(comp_temp)'
+        message = "test"
+
+        API_ENDPOINT = URL
+        data = {
+            "currentRawTemp": str(temperature),
+            "currentHumidity": str(humidity),
+            "currentPressure": str(pressure),
+            "currentCpuTemp": str(cpu_temp),
+            "currentAdjustedTemp": str(comp_temp),
+            "currentTime": str(current_time)
+        }
+
+        if (comp_temp > 0):
+            r = requests.post(url=API_ENDPOINT, json=data)
+            res = json.loads(r.text)
+            res = json.dumps(res)
+            print(r)
+
         size_x, size_y = draw.textsize(message)
 
         # Calculate text position
@@ -92,7 +128,7 @@ try:
         draw.rectangle((0, 0, 160, 80), back_colour)
         draw.text((x, y), message, fill=text_colour)
         disp.display(img)
-        time.sleep(10.0)
+        time.sleep(30.0)
 
 
 # Turn off backlight on control-c
