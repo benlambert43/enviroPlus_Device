@@ -2,10 +2,11 @@ const express = require('express')
 const app = express();
 const mongoose = require('mongoose')
 const bodyParser = require('body-parser')
+const cors = require('cors')
 require('dotenv/config')
 const uri = process.env.DB_CONNECTION;
 
-
+app.use(cors())
 app.use(bodyParser.json())
 const enviroDataRoute = require('./routes/enviroData')
 
