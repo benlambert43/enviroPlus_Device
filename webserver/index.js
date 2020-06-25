@@ -15,6 +15,6 @@ app.get('/', (req, res) => {
   res.send('Server is live.')
 })
 
-mongoose.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true }, (err) => console.log(err))
+mongoose.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true }, (err) => (err) ? console.log(err) : console.log("db connected."))
 
 app.listen(4000, '0.0.0.0', () => console.log('Started on port 4000'));
