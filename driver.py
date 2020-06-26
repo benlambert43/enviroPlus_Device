@@ -148,6 +148,7 @@ try:
         t = time.localtime()
         current_time = time.strftime("%H:%M:%S", t)
         data = {
+            "currentPoint": i2,
             "currentRawTemp": str(temperature),
             "currentHumidity": str(humidity),
             "currentPressure": str(pressure),
@@ -207,7 +208,7 @@ try:
             draw.rectangle((0, 0, 160, 80), back_colour)
             draw.text((x, y), message, fill=text_colour)
             disp.display(img)
-
+        print(chr(27) + "[2J")
         print("TEST # = " + str(i) + "\n temp = " + str(temperature) + "\n humidity = " + str(humidity) + "\n pressure = " + str(pressure) + "\n CPU TEMP = " + str(cpu_temp) +
               "\n cmp temp = " + str(comp_temp) + "\n light = " + str(light) + "\n co = " + str(co2) + "\n no2 = " + str(no2) + "\n nh3 = " + str(nh3)) + "\n" + "-----------------------------------------"
 

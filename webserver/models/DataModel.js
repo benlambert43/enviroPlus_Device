@@ -1,6 +1,10 @@
 const mongoose = require('mongoose')
 
 const DataModel = mongoose.Schema({
+  currentPoint: {
+    type: Number,
+    required: true
+  },
   date: {
     type: Date,
     default: Date.now

@@ -6,8 +6,37 @@ router.get('/', (req, res) => {
   res.send('enviroData route.')
 })
 
+router.get('/pullAll', async (req, res) => {
+  try {
+    const allPoints = await DataModel.find()
+    res.json(allPoints)
+  } catch (err) {
+    res.json({ message: err })
+  }
+})
+
+router.get('/:pointID', async (req, res) => {
+  try {
+    const point = await DataModel.findById(req.params.pointID)
+    res.json(point)
+  } catch (err) {
+    res.json({ message: err })
+  }
+})
+
+router.delete('/:pointID', async (req, res) => {
+  try {
+    const deletedPoint = await DataModel.deleteOne({ _id: req.params.pointID })
+    res.json(deletedPoint)
+  } catch (err) {
+    res.json({ message: err })
+  }
+})
+
+
 router.post('/', async (req, res) => {
   const dataModel = new DataModel({
+    currentPoint: req.body.currentPoint,
     currentRawTemp: req.body.currentRawTemp,
     currentHumidity: req.body.currentHumidity,
     currentPressure: req.body.currentPressure,
