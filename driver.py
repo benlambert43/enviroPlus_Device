@@ -140,7 +140,6 @@ try:
 
         # Date
         today = date.today()
-        print("Today's date: " + str(today))
 
         # New canvas to draw on.
 
