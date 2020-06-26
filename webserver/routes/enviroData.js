@@ -13,6 +13,10 @@ router.post('/', async (req, res) => {
     currentPressure: req.body.currentPressure,
     currentCpuTemp: req.body.currentCpuTemp,
     currentAdjustedTemp: req.body.currentAdjustedTemp,
+    currentLight: req.body.currentLight,
+    currentco2: req.body.currentco2,
+    currentno2: req.body.currentno2,
+    currentnh3: req.body.currentnh3,
     currentTime: req.body.currentTime
   })
   try {

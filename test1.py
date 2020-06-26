@@ -9,6 +9,15 @@ from PIL import Image, ImageDraw, ImageFont
 import ST7735
 import requests
 import socket
+try:
+    # Transitional fix for breaking change in LTR559
+    from ltr559 import LTR559
+    ltr559 = LTR559()
+except ImportError:
+    import ltr559
+
+from enviroplus import gas
+
 NODEJSPORT = 4000
 
 
@@ -49,7 +58,7 @@ def get_cpu_temperature():
 
 # Tuning factor for compensation. Decrease this number to adjust the
 # temperature down, and increase to adjust up
-factor = 1.25
+factor = 2
 cpu_temps = [get_cpu_temperature()] * 5
 
 
@@ -76,9 +85,10 @@ print("IP Address: " + ip_address)
 URL = "http://" + "localhost" + ":" + str(4000) + "/envirodata"
 print("NodeJS URL: " + URL)
 r = requests.get(url=URL)
-print(r)
+print("Server responded with " + str(r))
 
 i = 0
+i2 = 0
 
 message = "Starting Service.\n" + "Hostname: " + \
     hostname + "\n"
@@ -95,7 +105,6 @@ draw.text((x, y), message, fill=text_colour)
 disp.display(img)
 time.sleep(1.0)
 
-time.sleep(10.0)
 
 # Keep running.
 try:
@@ -106,9 +115,9 @@ try:
         cpu_temps = cpu_temps[1:] + [cpu_temp]
         avg_cpu_temp = sum(cpu_temps) / float(len(cpu_temps))
         raw_temp = bme280.get_temperature()
-        time.sleep(1.0)
+        time.sleep(0.5)
         comp_temp = raw_temp - ((avg_cpu_temp - raw_temp) / factor)
-        time.sleep(1.0)
+        time.sleep(0.5)
 
         # logging.info("Compensated temperature: {:05.2f} *C".format(comp_temp))
 
@@ -116,6 +125,17 @@ try:
         temperature = bme280.get_temperature()
         pressure = bme280.get_pressure()
         humidity = bme280.get_humidity()
+        light = ltr559.get_lux()
+        # CO2 (Reducing)
+        gas_sensor = gas.read_all()
+        co2 = gas_sensor.reducing / 1000
+
+        # NO2 (Oxidising)
+        no2 = gas_sensor.oxidising / 1000
+
+        # NH3 (Ammonia)
+        nh3 = gas_sensor.nh3 / 1000
+
         # New canvas to draw on.
 
         # message = "temp = " + str(temperature) + "\n" + \
@@ -133,30 +153,63 @@ try:
             "currentPressure": str(pressure),
             "currentCpuTemp": str(cpu_temp),
             "currentAdjustedTemp": str(comp_temp),
+            "currentLight": str(light),
+            "currentco2": str(co2),
+            "currentno2": str(no2),
+            "currentnh3": str(nh3),
             "currentTime": str(current_time)
         }
 
-        if (comp_temp > 0):
+        if (i % 100 == 0):
+            print("\n \n -------------------------- \n -------------------------- \n -------------------------- \n -------------------------- \n ")
+            i2 = i2+1
+            print("SENDING TO DB!")
+            print("\n \n -------------------------- \n -------------------------- \n -------------------------- \n -------------------------- \n ")
+
             r = requests.post(url=API_ENDPOINT, json=data)
             res = json.loads(r.text)
             res = json.dumps(res)
             print(r)
-            message = "POST #: " + str(i) + "\n" + \
+
+            # RESPONSE CODE
+            message = "POST #: " + str(i2) + "\n" + \
                 "Status Code: " + "\n" + str(r)
+            size_x, size_y = draw.textsize(message)
+
+            # draw
+            x = (WIDTH - size_x) / 2
+            y = (HEIGHT / 2) - (size_y / 2)
+            draw.rectangle((0, 0, 160, 80), back_colour)
+            draw.text((x, y), message, fill=text_colour)
+            disp.display(img)
+            i = 0
+            time.sleep(2.5)
+
+            # DATA SENT:
+            message = "Timestamp " + str(i2) + ":" + "\n" + str(current_time)
+            size_x, size_y = draw.textsize(message)
+
+            # draw
+            x = (WIDTH - size_x) / 2
+            y = (HEIGHT / 2) - (size_y / 2)
+            draw.rectangle((0, 0, 160, 80), back_colour)
+            draw.text((x, y), message, fill=text_colour)
+            disp.display(img)
+            time.sleep(2.05)
+
         else:
-            message = "initializing..."
+            message = "Calibrating Sensor: " + str(i) + "%"
+            size_x, size_y = draw.textsize(message)
+            # Calculate text position
+            x = (WIDTH - size_x) / 2
+            y = (HEIGHT / 2) - (size_y / 2)
+            # Draw background rectangle and write text.
+            draw.rectangle((0, 0, 160, 80), back_colour)
+            draw.text((x, y), message, fill=text_colour)
+            disp.display(img)
 
-        size_x, size_y = draw.textsize(message)
-
-        # Calculate text position
-        x = (WIDTH - size_x) / 2
-        y = (HEIGHT / 2) - (size_y / 2)
-
-        # Draw background rectangle and write text.
-        draw.rectangle((0, 0, 160, 80), back_colour)
-        draw.text((x, y), message, fill=text_colour)
-        disp.display(img)
-        time.sleep(1.0)
+        print("TEST # = " + str(i) + "\n temp = " + str(temperature) + "\n humidity = " + str(humidity) + "\n pressure = " + str(pressure) + "\n CPU TEMP = " + str(cpu_temp) +
+              "\n cmp temp = " + str(comp_temp) + "\n light = " + str(light) + "\n co = " + str(co2) + "\n no2 = " + str(no2) + "\n nh3 = " + str(nh3)) + "\n" + "-----------------------------------------"
 
 
 # Turn off backlight on control-c

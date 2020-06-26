@@ -27,7 +27,22 @@ const DataModel = mongoose.Schema({
   currentAdjustedTemp: {
     type: String,
     required: true
-
+  },
+  currentLight: {
+    type: String,
+    required: true
+  },
+  currentco2: {
+    type: String,
+    required: true
+  },
+  currentno2: {
+    type: String,
+    required: true
+  },
+  currentnh3: {
+    type: String,
+    required: true
   },
   currentTime: {
     type: String,
