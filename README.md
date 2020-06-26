@@ -8,8 +8,10 @@ Starting MongoDB locally:
 sudo systemctl enable mongodb
 sudo systemctl start mongodb
 
+Start nodejs server BEFORE running python script.
+
 1) start nodejs server:
 node index.js
 
-2) start python script:
-python test1.py
+2) start python driver:
+python driver.py
