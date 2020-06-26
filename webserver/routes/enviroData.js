@@ -46,7 +46,8 @@ router.post('/', async (req, res) => {
     currentco2: req.body.currentco2,
     currentno2: req.body.currentno2,
     currentnh3: req.body.currentnh3,
-    currentTime: req.body.currentTime
+    currentTime: req.body.currentTime,
+    currentDate: req.body.currentDate
   })
   try {
     const saved = await dataModel.save()

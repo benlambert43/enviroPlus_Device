@@ -51,6 +51,10 @@ const DataModel = mongoose.Schema({
   currentTime: {
     type: String,
     required: true
+  },
+  currentDate: {
+    type: String,
+    required: true
   }
 })
 

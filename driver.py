@@ -4,6 +4,7 @@ import os
 import json
 from bme280 import BME280
 import time
+from datetime import date
 import logging
 from PIL import Image, ImageDraw, ImageFont
 import ST7735
@@ -19,6 +20,7 @@ except ImportError:
 from enviroplus import gas
 
 NODEJSPORT = 4000
+FREQUENCY = 1000
 
 
 try:
@@ -109,7 +111,7 @@ time.sleep(1.0)
 # Keep running.
 try:
     while True:
-        i = i+1
+        i = i+1.0
         cpu_temp = get_cpu_temperature()
         # Smooth out with some averaging to decrease jitter
         cpu_temps = cpu_temps[1:] + [cpu_temp]
@@ -136,6 +138,10 @@ try:
         # NH3 (Ammonia)
         nh3 = gas_sensor.nh3 / 1000
 
+        # Date
+        today = date.today()
+        print("Today's date: " + str(today))
+
         # New canvas to draw on.
 
         # message = "temp = " + str(temperature) + "\n" + \
@@ -146,6 +152,7 @@ try:
         API_ENDPOINT = URL
 
         t = time.localtime()
+        today = date.today()
         current_time = time.strftime("%H:%M:%S", t)
         data = {
             "currentPoint": i2,
@@ -158,10 +165,11 @@ try:
             "currentco2": str(co2),
             "currentno2": str(no2),
             "currentnh3": str(nh3),
-            "currentTime": str(current_time)
+            "currentTime": str(current_time),
+            "currentDate": str(today)
         }
 
-        if (i % 1000 == 0):
+        if (i % FREQUENCY == 0):
             print("\n \n -------------------------- \n -------------------------- \n -------------------------- \n -------------------------- \n ")
             i2 = i2+1
             print("SENDING TO DB!")
@@ -183,7 +191,7 @@ try:
             draw.rectangle((0, 0, 160, 80), back_colour)
             draw.text((x, y), message, fill=text_colour)
             disp.display(img)
-            i = 0
+            i = 0.0
             time.sleep(2.5)
 
             # DATA SENT:
@@ -199,7 +207,7 @@ try:
             time.sleep(2.05)
 
         else:
-            message = "Calibrating Sensor: " + str(i/10) + "%"
+            message = "Calibrating Sensor: " + "\n" + str(i/10) + "%"
             size_x, size_y = draw.textsize(message)
             # Calculate text position
             x = (WIDTH - size_x) / 2
@@ -209,6 +217,7 @@ try:
             draw.text((x, y), message, fill=text_colour)
             disp.display(img)
         print(chr(27) + "[2J")
+        print(str(today) + " " + str(current_time))
         print("TEST # = " + str(i/10) + "\n temp = " + str(temperature) + "\n humidity = " + str(humidity) + "\n pressure = " + str(pressure) + "\n CPU TEMP = " + str(cpu_temp) +
               "\n cmp temp = " + str(comp_temp) + "\n light = " + str(light) + "\n co = " + str(co2) + "\n no2 = " + str(no2) + "\n nh3 = " + str(nh3)) + "\n" + "-----------------------------------------"
 
