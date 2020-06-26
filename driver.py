@@ -87,7 +87,7 @@ print("NodeJS URL: " + URL)
 r = requests.get(url=URL)
 print("Server responded with " + str(r))
 
-i = 0
+i = 0.0
 i2 = 0
 
 message = "Starting Service.\n" + "Hostname: " + \
@@ -161,7 +161,7 @@ try:
             "currentTime": str(current_time)
         }
 
-        if (i % 100 == 0):
+        if (i % 1000 == 0):
             print("\n \n -------------------------- \n -------------------------- \n -------------------------- \n -------------------------- \n ")
             i2 = i2+1
             print("SENDING TO DB!")
@@ -199,7 +199,7 @@ try:
             time.sleep(2.05)
 
         else:
-            message = "Calibrating Sensor: " + str(i) + "%"
+            message = "Calibrating Sensor: " + str(i/10) + "%"
             size_x, size_y = draw.textsize(message)
             # Calculate text position
             x = (WIDTH - size_x) / 2
@@ -209,7 +209,7 @@ try:
             draw.text((x, y), message, fill=text_colour)
             disp.display(img)
         print(chr(27) + "[2J")
-        print("TEST # = " + str(i) + "\n temp = " + str(temperature) + "\n humidity = " + str(humidity) + "\n pressure = " + str(pressure) + "\n CPU TEMP = " + str(cpu_temp) +
+        print("TEST # = " + str(i/10) + "\n temp = " + str(temperature) + "\n humidity = " + str(humidity) + "\n pressure = " + str(pressure) + "\n CPU TEMP = " + str(cpu_temp) +
               "\n cmp temp = " + str(comp_temp) + "\n light = " + str(light) + "\n co = " + str(co2) + "\n no2 = " + str(no2) + "\n nh3 = " + str(nh3)) + "\n" + "-----------------------------------------"
 
 
