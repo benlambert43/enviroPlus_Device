@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 
 import os
+import psutil
 import json
+import math
 from bme280 import BME280
 import time
+import datetime
 from datetime import date
 import logging
 from PIL import Image, ImageDraw, ImageFont
@@ -128,6 +131,13 @@ co2Arr = []
 no2Arr = []
 nh3Arr = []
 
+# Clearing Database:
+print("CLEARING DATABASE")
+deleteURL = "http://10.0.0.91:4000/envirodata/DELETEALL/" + str(date.today())
+d = requests.delete(url=deleteURL)
+print(d)
+
+
 # Keep running.
 try:
     while True:
@@ -209,13 +219,28 @@ try:
             "currentDate": str(today)
         }
 
-        print(data)
+        # Reset the database every day.
+        ResetHour = 9
+        now = datetime.datetime.now()
+        resetTimeFloor = now.replace(
+            hour=ResetHour, minute=5, second=0, microsecond=0)
+        resetTimeCeil = now.replace(
+            hour=ResetHour, minute=6, second=12, microsecond=0)
 
+        # Send the current average to the database, reset the averaging arrays.
         if (i % FREQUENCY == 0):
-            print("\n \n -------------------------- \n -------------------------- \n -------------------------- \n -------------------------- \n ")
+            if (now < resetTimeCeil and now > resetTimeFloor):
+                print("\n \n \n \n -------------------------- \n ")
+                print("SENDING RESET SIGNAL")
+                print("\n \n -------------------------- \n ")
+                deleteURL = "http://10.0.0.91:4000/envirodata/DELETEALL/" + \
+                    str(today)
+                d = requests.delete(url=deleteURL)
+                i2 = 0
+                i = 0
+                continue
+
             i2 = i2+1
-            print("SENDING TO DB!")
-            print("\n \n -------------------------- \n -------------------------- \n -------------------------- \n -------------------------- \n ")
 
             r = requests.post(url=API_ENDPOINT, json=data)
             res = json.loads(r.text)
@@ -226,6 +251,7 @@ try:
             message = "POST #: " + str(i2) + "\n" + \
                 "Status Code: " + "\n" + str(r)
             size_x, size_y = draw.textsize(message)
+            print(message)
 
             # draw
             x = (WIDTH - size_x) / 2
@@ -247,6 +273,7 @@ try:
             draw.text((x, y), message, fill=text_colour)
             disp.display(img)
             time.sleep(2.05)
+            print(message)
 
             del temperatureArr[:]
             del humidityArr[:]
@@ -259,7 +286,8 @@ try:
             del nh3Arr[:]
 
         else:
-            message = "Calibrating Sensor: " + "\n" + str(i/60.0 * 100) + "%"
+            message = "Status: " + str(int(math.floor(i/60 * 100))) + "%" + "\n" + "CPU USAGE | RAM USAGE: " + "\n" + str(
+                psutil.cpu_percent()) + "%      | " + str(psutil.virtual_memory().percent) + "%"
             print(message)
             size_x, size_y = draw.textsize(message)
             # Calculate text position

@@ -1,6 +1,9 @@
 const express = require('express')
 const router = express.Router();
 const DataModel = require('../models/DataModel')
+const fs = require('fs')
+
+
 
 router.get('/', (req, res) => {
   res.send('enviroData route.')
@@ -35,12 +38,25 @@ router.delete('/:pointID', async (req, res) => {
 
 router.delete('/DELETEALL/:deleteDate', async (req, res) => {
   try {
+    exportEOD(req.params.deleteDate)
     const deletedAll = await DataModel.deleteMany({ currentDate: req.params.deleteDate })
     res.json(deletedAll)
   } catch (err) {
     res.json({ message: err })
   }
 })
+
+
+const exportEOD = async (day) => {
+  try {
+    const dayData = await DataModel.find();
+    const dataJSON = JSON.stringify(dayData)
+    fs.writeFileSync(`./dataStore/${day}.json`, dataJSON)
+  } catch (e) {
+    return e
+  }
+}
+
 
 
 router.post('/', async (req, res) => {
