@@ -220,16 +220,16 @@ try:
         }
 
         # Reset the database every day.
-        ResetHour = 9
+        ResetHour = 23
         now = datetime.datetime.now()
         resetTimeFloor = now.replace(
-            hour=ResetHour, minute=5, second=0, microsecond=0)
+            hour=ResetHour, minute=58, second=46, microsecond=0)
         resetTimeCeil = now.replace(
-            hour=ResetHour, minute=6, second=12, microsecond=0)
+            hour=23, minute=59, second=59, microsecond=0)
 
         # Send the current average to the database, reset the averaging arrays.
         if (i % FREQUENCY == 0):
-            if (now < resetTimeCeil and now > resetTimeFloor):
+            if (now <= resetTimeCeil and now >= resetTimeFloor):
                 print("\n \n \n \n -------------------------- \n ")
                 print("SENDING RESET SIGNAL")
                 print("\n \n -------------------------- \n ")
