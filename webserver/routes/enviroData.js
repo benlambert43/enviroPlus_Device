@@ -33,6 +33,15 @@ router.delete('/:pointID', async (req, res) => {
   }
 })
 
+router.delete('/DELETEALL/:deleteDate', async (req, res) => {
+  try {
+    const deletedAll = await DataModel.deleteMany({ currentDate: req.params.deleteDate })
+    res.json(deletedAll)
+  } catch (err) {
+    res.json({ message: err })
+  }
+})
+
 
 router.post('/', async (req, res) => {
   const dataModel = new DataModel({

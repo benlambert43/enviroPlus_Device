@@ -20,7 +20,7 @@ except ImportError:
 from enviroplus import gas
 
 NODEJSPORT = 4000
-FREQUENCY = 1000
+FREQUENCY = 60
 
 
 try:
@@ -108,6 +108,26 @@ disp.display(img)
 time.sleep(1.0)
 
 
+# Initializing Average Value Arrays
+# currentRawTemp: temperature
+# currentHumidity: humidity
+# currentPressure: pressure
+# currentCpuTemp: cpu_temp
+# currentAdjustedTemp: comp_temp
+# currentLight: light
+# currentco2: co2
+# currentno2: no2
+# currentnh3: nh3
+temperatureArr = []
+humidityArr = []
+pressureArr = []
+cpuTemperatureArr = []
+adjTempArr = []
+lightArr = []
+co2Arr = []
+no2Arr = []
+nh3Arr = []
+
 # Keep running.
 try:
     while True:
@@ -128,6 +148,7 @@ try:
         pressure = bme280.get_pressure()
         humidity = bme280.get_humidity()
         light = ltr559.get_lux()
+
         # CO2 (Reducing)
         gas_sensor = gas.read_all()
         co2 = gas_sensor.reducing / 1000
@@ -138,10 +159,30 @@ try:
         # NH3 (Ammonia)
         nh3 = gas_sensor.nh3 / 1000
 
+        # Add to averaging arrays
+        temperatureArr.append(temperature)
+        humidityArr.append(humidity)
+        pressureArr.append(pressure)
+        cpuTemperatureArr.append(cpu_temp)
+        adjTempArr.append(comp_temp)
+        lightArr.append(light)
+        co2Arr.append(co2)
+        no2Arr.append(no2)
+        nh3Arr.append(nh3)
+
+        temperatureBalanced = sum(temperatureArr) / len(temperatureArr)
+        humidityBalanced = sum(humidityArr) / len(humidityArr)
+        pressureBalanced = sum(pressureArr) / len(pressureArr)
+        cpuTemperatureBalanced = sum(
+            cpuTemperatureArr) / len(cpuTemperatureArr)
+        adjTempBalanced = sum(adjTempArr) / len(adjTempArr)
+        lightBalanced = sum(lightArr) / len(lightArr)
+        co2Balanced = sum(co2Arr) / len(co2Arr)
+        no2Balanced = sum(no2Arr) / len(no2Arr)
+        nh3Balanced = sum(nh3Arr) / len(nh3Arr)
+
         # Date
         today = date.today()
-
-        # New canvas to draw on.
 
         # message = "temp = " + str(temperature) + "\n" + \
         #     "press = " + str(pressure) + "\n" + "hum = " + \
@@ -155,18 +196,20 @@ try:
         current_time = time.strftime("%H:%M:%S", t)
         data = {
             "currentPoint": i2,
-            "currentRawTemp": str(temperature),
-            "currentHumidity": str(humidity),
-            "currentPressure": str(pressure),
-            "currentCpuTemp": str(cpu_temp),
-            "currentAdjustedTemp": str(comp_temp),
-            "currentLight": str(light),
-            "currentco2": str(co2),
-            "currentno2": str(no2),
-            "currentnh3": str(nh3),
+            "currentRawTemp": str(temperatureBalanced),
+            "currentHumidity": str(humidityBalanced),
+            "currentPressure": str(pressureBalanced),
+            "currentCpuTemp": str(cpuTemperatureBalanced),
+            "currentAdjustedTemp": str(adjTempBalanced),
+            "currentLight": str(lightBalanced),
+            "currentco2": str(co2Balanced),
+            "currentno2": str(no2Balanced),
+            "currentnh3": str(nh3Balanced),
             "currentTime": str(current_time),
             "currentDate": str(today)
         }
+
+        print(data)
 
         if (i % FREQUENCY == 0):
             print("\n \n -------------------------- \n -------------------------- \n -------------------------- \n -------------------------- \n ")
@@ -205,8 +248,19 @@ try:
             disp.display(img)
             time.sleep(2.05)
 
+            del temperatureArr[:]
+            del humidityArr[:]
+            del pressureArr[:]
+            del cpuTemperatureArr[:]
+            del adjTempArr[:]
+            del lightArr[:]
+            del co2Arr[:]
+            del no2Arr[:]
+            del nh3Arr[:]
+
         else:
-            message = "Calibrating Sensor: " + "\n" + str(i/10) + "%"
+            message = "Calibrating Sensor: " + "\n" + str(i/60.0 * 100) + "%"
+            print(message)
             size_x, size_y = draw.textsize(message)
             # Calculate text position
             x = (WIDTH - size_x) / 2
@@ -215,10 +269,10 @@ try:
             draw.rectangle((0, 0, 160, 80), back_colour)
             draw.text((x, y), message, fill=text_colour)
             disp.display(img)
-        print(chr(27) + "[2J")
-        print(str(today) + " " + str(current_time))
-        print("TEST # = " + str(i/10) + "\n temp = " + str(temperature) + "\n humidity = " + str(humidity) + "\n pressure = " + str(pressure) + "\n CPU TEMP = " + str(cpu_temp) +
-              "\n cmp temp = " + str(comp_temp) + "\n light = " + str(light) + "\n co = " + str(co2) + "\n no2 = " + str(no2) + "\n nh3 = " + str(nh3)) + "\n" + "-----------------------------------------"
+        # print(chr(27) + "[2J")
+        # print(str(today) + " " + str(current_time))
+        # print("TEST # = " + str(i/10) + "\n temp = " + str(temperature) + "\n humidity = " + str(humidity) + "\n pressure = " + str(pressure) + "\n CPU TEMP = " + str(cpu_temp) +
+        #      "\n cmp temp = " + str(comp_temp) + "\n light = " + str(light) + "\n co = " + str(co2) + "\n no2 = " + str(no2) + "\n nh3 = " + str(nh3)) + "\n" + "-----------------------------------------"
 
 
 # Turn off backlight on control-c
