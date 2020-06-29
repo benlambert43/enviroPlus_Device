@@ -71,6 +71,7 @@ cpu_temps = [get_cpu_temperature()] * 5
 WIDTH = disp.width
 HEIGHT = disp.height
 
+
 disp.begin()
 
 img = Image.new('RGB', (WIDTH, HEIGHT), color=(0, 0, 0))
@@ -136,6 +137,8 @@ print("CLEARING DATABASE")
 deleteURL = "http://10.0.0.91:4000/envirodata/DELETEALL/" + str(date.today())
 d = requests.delete(url=deleteURL)
 print(d)
+
+backupURL = "http://10.0.0.91:4000/envirodata/save/"
 
 
 # Keep running.
@@ -220,32 +223,29 @@ try:
         }
 
         # Reset the database every day.
+        # Time will be 17 seconds.
         ResetHour = 23
         now = datetime.datetime.now()
         resetTimeFloor = now.replace(
-            hour=ResetHour, minute=58, second=46, microsecond=0)
+            hour=ResetHour, minute=58, second=42, microsecond=0)
         resetTimeCeil = now.replace(
-            hour=23, minute=59, second=59, microsecond=0)
+            hour=ResetHour, minute=59, second=59, microsecond=0)
 
         # Send the current average to the database, reset the averaging arrays.
         if (i % FREQUENCY == 0):
-            if (now <= resetTimeCeil and now >= resetTimeFloor):
-                print("\n \n \n \n -------------------------- \n ")
-                print("SENDING RESET SIGNAL")
-                print("\n \n -------------------------- \n ")
-                deleteURL = "http://10.0.0.91:4000/envirodata/DELETEALL/" + \
-                    str(today)
-                d = requests.delete(url=deleteURL)
-                i2 = 0
-                i = 0
-                continue
 
             i2 = i2+1
 
             r = requests.post(url=API_ENDPOINT, json=data)
             res = json.loads(r.text)
             res = json.dumps(res)
-            print(r)
+            time.sleep(2)
+
+            saveURL = backupURL + str(today)
+            saveRes = requests.get(url=saveURL)
+            print("Saving...")
+            print(saveRes)
+            time.sleep(2)
 
             # RESPONSE CODE
             message = "POST #: " + str(i2) + "\n" + \
@@ -285,8 +285,19 @@ try:
             del no2Arr[:]
             del nh3Arr[:]
 
+            if (now <= resetTimeCeil and now >= resetTimeFloor):
+                print("\n \n \n \n -------------------------- \n ")
+                print("SENDING RESET SIGNAL")
+                print("\n \n -------------------------- \n ")
+                deleteURL = "http://10.0.0.91:4000/envirodata/DELETEALL/" + \
+                    str(today)
+                d = requests.delete(url=deleteURL)
+                i2 = 0
+                i = 0
+                continue
+
         else:
-            message = "Status: " + str(int(math.floor(i/60 * 100))) + "%" + "\n" + "CPU USAGE | RAM USAGE: " + "\n" + str(
+            message = "Status: " + str(int(math.floor(i/FREQUENCY * 100))) + "%" + "\n" + "CPU USAGE | RAM USAGE: " + "\n" + str(
                 psutil.cpu_percent()) + "%      | " + str(psutil.virtual_memory().percent) + "%"
             print(message)
             size_x, size_y = draw.textsize(message)

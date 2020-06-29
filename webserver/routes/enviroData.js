@@ -18,6 +18,15 @@ router.get('/pullAll', async (req, res) => {
   }
 })
 
+router.get('/save/:Date', async (req, res) => {
+  try {
+    exportEOD(req.params.Date)
+    res.json(req.params.Date)
+  } catch (err) {
+    res.json({ message: err })
+  }
+})
+
 router.get('/:pointID', async (req, res) => {
   try {
     const point = await DataModel.findById(req.params.pointID)
@@ -38,7 +47,6 @@ router.delete('/:pointID', async (req, res) => {
 
 router.delete('/DELETEALL/:deleteDate', async (req, res) => {
   try {
-    exportEOD(req.params.deleteDate)
     const deletedAll = await DataModel.deleteMany({ currentDate: req.params.deleteDate })
     res.json(deletedAll)
   } catch (err) {
