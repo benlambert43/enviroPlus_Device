@@ -18,6 +18,16 @@ router.get('/pullAll', async (req, res) => {
   }
 })
 
+router.get('/pullDate/:Date', async (req, res) => {
+  try {
+    const dayData = await importDay(req.params.Date)
+    res.json(dayData)
+  } catch (err) {
+    res.json({ message: err })
+  }
+
+})
+
 router.get('/save/:Date', async (req, res) => {
   try {
     exportEOD(req.params.Date)
@@ -62,6 +72,16 @@ const exportEOD = async (day) => {
     fs.writeFileSync(`./dataStore/${day}.json`, dataJSON)
   } catch (e) {
     return e
+  }
+}
+
+const importDay = (day) => {
+  try {
+    const dataBuffer = fs.readFileSync(`./dataStore/${day}.json`)
+    const dataJSON = dataBuffer.toString()
+    return JSON.parse(dataJSON)
+  } catch (e) {
+    return []
   }
 }
 
