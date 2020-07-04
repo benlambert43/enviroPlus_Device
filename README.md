@@ -1,10 +1,12 @@
 # enviroPlus_Device
 
-# SEE IMG_0020.jpg and DEMO_VIDEO.MP4 !!!
-
 Device application driver for enviro+ hardware.
 
-Web server for exporting enviro+ values with a REST API
+driver.py sends data to REST API
+
+NodeJS server used for exporting enviro+ values with a REST API, consumed by https://github.com/benlambert43/enviroPlus_App
+
+# SEE IMG_0020.jpg and DEMO_VIDEO.MP4 !!!
 
 
 System requirements:
